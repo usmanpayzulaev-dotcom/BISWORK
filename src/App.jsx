@@ -125,7 +125,7 @@ function App() {
     const newJob = { ...form, id: 'local-' + Date.now(), lat: coords[0], lng: coords[1], createdAt: new Date().toISOString(), localOnly: true };
     setJobs(current => [newJob, ...current]);
     setShowCreate(false);
-    setForm({ title: '', company: '', city: 'Грозный', tag: 'Строительство', type: 'Полная занятость', pay: '', phone: '', description: '' });
+    setForm({ title: '', company: '', city: 'Грозный', district: 'Грозненский район', tag: 'Строительство', type: 'Полная занятость', pay: '', phone: '', description: '' });
     setNotice('Объявление сохранено на этом телефоне. Для публикации всем пользователям нужен сервер BISWORK.');
     setTab('jobs');
     setQuery('');
