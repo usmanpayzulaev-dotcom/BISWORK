@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { settlements, districts as districtOptions } from './data/settlements';
 
 const STORAGE = { jobs: 'biswork.jobs.v2', favorites: 'biswork.favorites.v2', language: 'biswork.language.v2' };
-const districts = ['Ачхой-Мартановский район','Веденский район','Грозненский район','Гудермесский район','Итум-Калинский район','Курчалоевский район','Надтеречный район','Наурский район','Ножай-Юртовский район','Серноводский район','Урус-Мартановский район','Шалинский район','Шаройский район','Шатойский район','Шелковской район'];
-const urbanPlaces = ['Аргун','Грозный','Гудермес','Ачхой-Мартан','Курчалой','Наурская','Ойсхара','Серноводское','Урус-Мартан','Шали','Шелковская'];
-const suggestedPlaces = [...urbanPlaces,'Верхний Наур','Знаменское','Толстой-Юрт','Алхан-Кала','Самашки','Ведено','Итум-Кали','Шатой','Ножай-Юрт','Бачи-Юрт','Автуры','Гойты','Гехи','Ассиновская','Бамут','Бено-Юрт','Гвардейское','Надтеречное'];
+const districts = districtOptions;
+const suggestedPlaces = [...new Set([...settlements.map(item => item.name), 'Аргун','Грозный','Гудермес','Ачхой-Мартан','Курчалой','Наурская','Ойсхара','Серноводское','Урус-Мартан','Шали','Шелковская'])];
 const cityCoords = {
   'Грозный': [43.3178, 45.6987], 'Аргун': [43.291, 46.105], 'Гудермес': [43.35, 46.1], 'Ойсхара': [43.13, 46.24], 'Шелковская': [43.51, 46.34],
   'Урус-Мартан': [43.128, 45.54], 'Шали': [43.148, 45.9], 'Курчалой': [43.2, 46.1],
@@ -215,7 +215,7 @@ function App() {
       <button type="button" className="close" onClick={() => setShowCreate(false)}>×</button><span className="eyebrow">NEW LISTING</span><h2>{t('Новое объявление', 'Керла хаам')}</h2>
       <label>{t('Название вакансии или услуги', 'Хааман цӀе')}<input required maxLength="70" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder={t('Например, нужен электрик', 'Например, нужен электрик')} /></label>
       <label>{t('Работодатель / организация', 'Организация')}<input maxLength="60" value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} placeholder={t('Имя или название компании', 'Имя или название компании')} /></label>
-      <div className="form-grid"><label>Район<select value={form.district} onChange={e => setForm({ ...form, district: e.target.value })}>{districts.map(d => <option key={d}>{d}</option>)}</select></label><label>{t('Город / село / посёлок', 'Город / село')}<input list="biswork-form-places" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} required placeholder="Введите населённый пункт" /><datalist id="biswork-form-places">{suggestedPlaces.map(p => <option key={p} value={p} />)}</datalist></label>
+      <div className="form-grid"><label>Район<select value={form.district} onChange={e => setForm({ ...form, district: e.target.value })}>{districts.map(d => <option key={d}>{d}</option>)}</select></label><label>{t('Город / село / посёлок', 'Город / село')}<input list="biswork-form-places" value={form.city} onChange={e => { const value = e.target.value; const match = settlements.find(item => item.name.toLocaleLowerCase('ru') === value.toLocaleLowerCase('ru')); setForm({ ...form, city: value, district: match ? match.district : form.district }); }} required placeholder="Введите населённый пункт" /><datalist id="biswork-form-places">{suggestedPlaces.map(p => <option key={p} value={p} />)}</datalist></label>
       <label>{t('Категория', 'Категория')}<select value={form.tag} onChange={e => setForm({ ...form, tag: e.target.value })}>{categories.filter(c => c !== 'Все').map(c => <option key={c}>{c}</option>)}</select></label></div>
       <label>{t('Оплата', 'Оплата')}<input maxLength="50" value={form.pay} onChange={e => setForm({ ...form, pay: e.target.value })} placeholder="Например, 3 000 ₽ за смену" /></label>
       <label>{t('Тип занятости', 'Тип занятости')}<select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}><option>Полная занятость</option><option>Частичная занятость</option><option>Подработка</option><option>Сменный график</option><option>Разовый заказ</option></select></label>
