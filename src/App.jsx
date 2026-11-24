@@ -134,7 +134,7 @@ function App() {
 
   return <div className="app-shell">
     <header className="topbar">
-      <div className="brand"><div className="brand-mark">B</div><div><strong>BISWORK</strong><small>{t('Работа рядом', 'Бера герга')}</small></div></div>
+      <div className="brand"><img className="brand-mark" src="/biswork-icon.svg" alt="BISWORK" /><div><strong>BISWORK</strong><small>{t('Работа рядом', 'Бера герга')}</small></div></div>
       <button className="lang" onClick={() => setLang(lang === 'ru' ? 'ce' : 'ru')}>{lang === 'ru' ? 'РУС' : 'НОХ'}</button>
     </header>
 
