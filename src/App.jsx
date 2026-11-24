@@ -10,12 +10,65 @@ const cityCoords = {
   'Шелковская': [43.51, 46.34], 'Итум-Кали': [42.76, 45.69], 'Шатой': [42.87, 45.69],
   'Ведено': [42.97, 46.1], 'Ножай-Юрт': [43.09, 46.38], 'Серноводское': [43.31, 45.16]
 };
-const seedJobs = [
-  { id: 'demo-1', title: 'Мастер-универсал', company: 'СтройГрупп', city: 'Грозный', pay: 'от 3 500 ₽ / день', type: 'Полная занятость', tag: 'Строительство', phone: '', description: 'Требуется опытный мастер для строительных и отделочных работ.', lat: 43.3178, lng: 45.6987, demo: true },
-  { id: 'demo-2', title: 'Водитель категории B', company: 'ЧеченАвто', city: 'Грозный', pay: 'от 55 000 ₽ / месяц', type: 'Полная занятость', tag: 'Транспорт', phone: '', description: 'Работа в городе. Подробности уточняйте у работодателя.', lat: 43.325, lng: 45.69, demo: true },
-  { id: 'demo-3', title: 'Электрик', company: 'Частный заказчик', city: 'Аргун', pay: 'от 4 000 ₽ / заказ', type: 'Подработка', tag: 'Ремонт', phone: '', description: 'Нужен специалист по электромонтажным работам.', lat: 43.291, lng: 46.105, demo: true },
-  { id: 'demo-4', title: 'Продавец-консультант', company: 'Магазин техники', city: 'Гудермес', pay: 'от 40 000 ₽ / месяц', type: 'Сменный график', tag: 'Продажи', phone: '', description: 'Консультация покупателей и помощь с выбором техники.', lat: 43.35, lng: 46.1, demo: true }
+const seedRows = [
+  ['Каменщик', 'Строительство', 'Грозный', 'от 4 000 ₽ / день', 'Подработка'],
+  ['Штукатур', 'Строительство', 'Грозный', 'от 3 500 ₽ / день', 'Полная занятость'],
+  ['Плиточник', 'Строительство', 'Аргун', 'от 4 500 ₽ / день', 'Подработка'],
+  ['Сварщик', 'Строительство', 'Гудермес', 'от 5 000 ₽ / смена', 'Полная занятость'],
+  ['Разнорабочий', 'Строительство', 'Урус-Мартан', 'от 2 500 ₽ / день', 'Подработка'],
+  ['Электромонтажник', 'Ремонт', 'Шали', 'от 4 000 ₽ / заказ', 'Разовый заказ'],
+  ['Сантехник', 'Ремонт', 'Грозный', 'от 3 500 ₽ / заказ', 'Подработка'],
+  ['Мастер по кондиционерам', 'Ремонт', 'Гудермес', 'от 4 000 ₽ / заказ', 'Подработка'],
+  ['Автомеханик', 'Транспорт', 'Аргун', 'от 50 000 ₽ / месяц', 'Полная занятость'],
+  ['Автоэлектрик', 'Транспорт', 'Грозный', 'от 45 000 ₽ / месяц', 'Полная занятость'],
+  ['Водитель категории C', 'Транспорт', 'Шали', 'от 60 000 ₽ / месяц', 'Полная занятость'],
+  ['Курьер', 'Транспорт', 'Грозный', 'от 2 500 ₽ / день', 'Частичная занятость'],
+  ['Водитель такси', 'Транспорт', 'Гудермес', 'от 3 000 ₽ / день', 'Свободный график'],
+  ['Продавец-консультант', 'Продажи', 'Грозный', 'от 40 000 ₽ / месяц', 'Сменный график'],
+  ['Кассир', 'Продажи', 'Аргун', 'от 35 000 ₽ / месяц', 'Сменный график'],
+  ['Менеджер по продажам', 'Продажи', 'Грозный', 'от 45 000 ₽ + бонусы', 'Полная занятость'],
+  ['Администратор магазина', 'Продажи', 'Гудермес', 'от 42 000 ₽ / месяц', 'Полная занятость'],
+  ['Повар', 'Общепит', 'Грозный', 'от 45 000 ₽ / месяц', 'Сменный график'],
+  ['Помощник повара', 'Общепит', 'Шали', 'от 32 000 ₽ / месяц', 'Сменный график'],
+  ['Официант', 'Общепит', 'Грозный', 'от 30 000 ₽ + чаевые', 'Частичная занятость'],
+  ['Бариста', 'Общепит', 'Аргун', 'от 35 000 ₽ / месяц', 'Сменный график'],
+  ['Швея', 'Производство', 'Урус-Мартан', 'от 40 000 ₽ / месяц', 'Полная занятость'],
+  ['Мастер по ремонту телефонов', 'Ремонт', 'Грозный', 'от 45 000 ₽ / месяц', 'Полная занятость'],
+  ['Сборщик мебели', 'Ремонт', 'Гудермес', 'от 3 500 ₽ / день', 'Подработка'],
+  ['Парикмахер', 'Услуги', 'Шали', 'от 40 000 ₽ / месяц', 'Сменный график'],
+  ['Мастер маникюра', 'Услуги', 'Грозный', 'от 50 000 ₽ / месяц', 'Сменный график'],
+  ['Фотограф', 'Услуги', 'Грозный', 'от 5 000 ₽ / съёмка', 'Свободный график'],
+  ['Уборщик помещений', 'Услуги', 'Гудермес', 'от 30 000 ₽ / месяц', 'Частичная занятость'],
+  ['Охранник', 'Безопасность', 'Аргун', 'от 35 000 ₽ / месяц', 'Сменный график'],
+  ['Бухгалтер', 'Офис', 'Грозный', 'от 55 000 ₽ / месяц', 'Полная занятость'],
+  ['Оператор ПК', 'Офис', 'Гудермес', 'от 38 000 ₽ / месяц', 'Полная занятость'],
+  ['Учитель математики', 'Образование', 'Шали', 'от 45 000 ₽ / месяц', 'Частичная занятость'],
+  ['Репетитор английского языка', 'Образование', 'Грозный', 'от 1 000 ₽ / урок', 'Свободный график'],
+  ['Воспитатель', 'Образование', 'Аргун', 'от 38 000 ₽ / месяц', 'Полная занятость'],
+  ['Медицинская сестра', 'Медицина', 'Грозный', 'от 42 000 ₽ / месяц', 'Полная занятость'],
+  ['Фармацевт', 'Медицина', 'Гудермес', 'от 45 000 ₽ / месяц', 'Сменный график'],
+  ['Помощник ветеринара', 'Сельское хозяйство', 'Наурская', 'от 35 000 ₽ / месяц', 'Полная занятость'],
+  ['Работник фермы', 'Сельское хозяйство', 'Знаменское', 'от 2 500 ₽ / день', 'Полная занятость'],
+  ['Тракторист', 'Сельское хозяйство', 'Шелковская', 'от 50 000 ₽ / месяц', 'Сезонная работа'],
+  ['Упаковщик товара', 'Производство', 'Курчалой', 'от 35 000 ₽ / месяц', 'Сменный график'],
+  ['Грузчик', 'Склад', 'Грозный', 'от 2 800 ₽ / смена', 'Подработка'],
+  ['Кладовщик', 'Склад', 'Гудермес', 'от 40 000 ₽ / месяц', 'Полная занятость'],
+  ['Менеджер по работе с клиентами', 'Офис', 'Аргун', 'от 40 000 ₽ / месяц', 'Полная занятость'],
+  ['Дизайнер', 'IT и дизайн', 'Грозный', 'от 50 000 ₽ / месяц', 'Удалённая работа'],
+  ['Специалист по SMM', 'IT и дизайн', 'Грозный', 'от 35 000 ₽ / проект', 'Частичная занятость'],
+  ['Разработчик сайтов', 'IT и дизайн', 'Грозный', 'от 70 000 ₽ / месяц', 'Удалённая работа'],
+  ['Мойщик автомобилей', 'Услуги', 'Серноводское', 'от 2 500 ₽ / день', 'Сменный график'],
+  ['Мастер шиномонтажа', 'Транспорт', 'Ачхой-Мартан', 'от 40 000 ₽ / месяц', 'Сезонная работа'],
+  ['Сторож', 'Безопасность', 'Итум-Кали', 'от 30 000 ₽ / месяц', 'Сменный график'],
+  ['Пекарь', 'Общепит', 'Шатой', 'от 38 000 ₽ / месяц', 'Полная занятость'],
+  ['Мастер по изготовлению дверей', 'Производство', 'Ведено', 'от 45 000 ₽ / месяц', 'Полная занятость'],
+  ['Помощник по хозяйству', 'Услуги', 'Ножай-Юрт', 'от 2 500 ₽ / день', 'Подработка']
 ];
+const seedJobs = seedRows.map((row, index) => {
+  const [title, tag, city, pay, type] = row;
+  const coords = cityCoords[city] || cityCoords['Грозный'];
+  return { id: 'sample-' + (index + 1), title, tag, city, pay, type, company: 'Пример объявления', phone: '', description: 'Демонстрационный пример для показа возможностей BISWORK. Это не подтверждённая вакансия. Условия, оплату и наличие места необходимо проверить у реального работодателя.', lat: coords[0], lng: coords[1], demo: true };
+});
 const pin = new L.DivIcon({ className: 'custom-pin', html: '<div class="pin-dot"></div>', iconSize: [22, 22], iconAnchor: [11, 11] });
 const readStore = (key, fallback) => { try { const value = localStorage.getItem(key); return value ? JSON.parse(value) : fallback; } catch { return fallback; } };
 
@@ -26,7 +79,7 @@ function MapFocus({ selected }) {
 }
 
 function MapView({ jobs, onSelect, selected }) {
-  return <MapContainer center={[43.25, 45.75]} zoom={8} minZoom={7} maxZoom={17} scrollWheelZoom className="map">
+  return <MapContainer center={[43.25, 45.75]} zoom={8} minZoom={8} maxZoom={17} maxBounds={[[42.45, 44.65], [43.95, 46.95]]} maxBoundsViscosity={1} scrollWheelZoom className="map">
     <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
     <MapFocus selected={selected} />
     {jobs.map(job => <Marker key={job.id} position={[job.lat, job.lng]} icon={pin} eventHandlers={{ click: () => onSelect(job) }}>
@@ -53,7 +106,7 @@ function App() {
   useEffect(() => { localStorage.setItem(STORAGE.language, JSON.stringify(lang)); }, [lang]);
 
   const t = (ru, ce) => lang === 'ru' ? ru : ce;
-  const categories = ['Все', 'Строительство', 'Транспорт', 'Ремонт', 'Продажи', 'Услуги', 'Другое'];
+  const categories = ['Все', 'Строительство', 'Транспорт', 'Ремонт', 'Продажи', 'Общепит', 'Производство', 'Услуги', 'Безопасность', 'Офис', 'Образование', 'Медицина', 'Сельское хозяйство', 'Склад', 'IT и дизайн', 'Другое'];
   const filtered = useMemo(() => jobs.filter(j =>
     (category === 'Все' || j.tag === category) &&
     (city === 'Все города' || j.city === city) &&
@@ -96,7 +149,7 @@ function App() {
         </section>
         <section className="section">
           <div className="section-head"><div><span className="eyebrow">BISWORK</span><h2>{t('Свежие вакансии', 'Керла ваканси')}</h2></div><button className="text-btn" onClick={() => switchTab('jobs')}>{t('Все вакансии →', 'Массо ваканси →')}</button></div>
-          <div className="job-list">{jobs.slice(0, 3).map(j => <JobCard key={j.id} job={j} onClick={() => openJob(j)} favorite={favorites.includes(j.id)} onFavorite={() => toggleFavorite(j.id)} />)}</div>
+          <div className="sample-note">Демонстрационные примеры вакансий. Они не являются подтверждёнными предложениями работодателей.</div><div className="job-list">{jobs.slice(0, 4).map(j => <JobCard key={j.id} job={j} onClick={() => openJob(j)} favorite={favorites.includes(j.id)} onFavorite={() => toggleFavorite(j.id)} />)}</div>
           <div className="quick-actions"><button className="quick-card" onClick={() => switchTab('map')}><span>⌖</span><b>{t('Открыть карту', 'Карта')}</b><small>{t('Вакансии по районам ЧР', 'Ваканси')}</small></button><button className="quick-card" onClick={() => switchTab('favorites')}><span>♡</span><b>{t('Избранное', 'Деза')}</b><small>{t('Сохранённые вакансии', 'ДӀасахь')}</small></button></div>
         </section>
       </>}
@@ -106,7 +159,7 @@ function App() {
         <input className="search" placeholder={t('Должность, компания или город', 'Болх, фирма я города')} value={query} onChange={e => setQuery(e.target.value)} />
         <div className="filter-row"><select className="filter-select" value={city} onChange={e => setCity(e.target.value)}><option>Все города</option>{Object.keys(cityCoords).map(c => <option key={c}>{c}</option>)}</select></div>
         <div className="chips">{categories.map(c => <button key={c} className={category === c ? 'chip active' : 'chip'} onClick={() => setCategory(c)}>{c}</button>)}</div>
-        <div className="job-list">{filtered.map(j => <JobCard key={j.id} job={j} onClick={() => openJob(j)} favorite={favorites.includes(j.id)} onFavorite={() => toggleFavorite(j.id)} />)}
+        <div className="sample-note">В каталоге есть демонстрационные примеры. Реальные вакансии появятся после публикации работодателями.</div><div className="job-list">{filtered.map(j => <JobCard key={j.id} job={j} onClick={() => openJob(j)} favorite={favorites.includes(j.id)} onFavorite={() => toggleFavorite(j.id)} />)}
           {filtered.length === 0 && <div className="empty-state"><b>{t('Ничего не найдено', 'Цхьа а хаам бац')}</b><p>{t('Измените запрос или выберите другой город.', 'Хьажа хьажа.')}</p></div>}
         </div>
         <button className="primary full create-inline" onClick={() => setShowCreate(true)}>＋ {t('Разместить объявление', 'Хаам дӀаязде')}</button>
@@ -114,7 +167,7 @@ function App() {
 
       {tab === 'map' && <section className="section map-section">
         <span className="eyebrow">MAP / CHECHNYA</span><h2>{title}</h2>
-        <p className="muted">{t('Карта Чеченской Республики. Нажмите на метку, чтобы открыть объявление.', 'Карта. Метка тӀе хьажа.')}</p>
+        <p className="muted">{t('Карта ограничена территорией Чеченской Республики. Нажмите на метку, чтобы открыть объявление.', 'Карта Нохчийчоьнан. Метка тӀе хьажа.')} </p>
         <div className="map-wrap"><MapView jobs={jobs} selected={selected} onSelect={openJob} /></div>
         <div className="map-legend"><span className="pin-dot"></span>{t('Объявления на карте', 'Карта чу хаамаш')} <span className="map-count">{jobs.length}</span></div>
         <button className="primary full create-inline" onClick={() => setShowCreate(true)}>＋ {t('Добавить объявление', 'Хаам дӀаязде')}</button>
@@ -148,7 +201,7 @@ function App() {
       <div className="detail-pay">{selected.pay || t('Оплата обсуждается', 'Оплата обсуждается')}</div>
       <div className="detail-row"><span>{t('Занятость', 'Занятость')}</span><b>{selected.type}</b></div>
       <p className="detail-description">{selected.description || t('Подробности уточняйте у работодателя.', 'Подробности уточняйте.')}</p>
-      {selected.localOnly && <p className="local-warning">{t('Это объявление сохранено только на вашем телефоне и пока не видно другим пользователям.', 'Локальное объявление.')}</p>}
+      {selected.demo && <p className="local-warning">Это демонстрационный пример, не подтверждённая вакансия.</p>}{selected.localOnly && <p className="local-warning">{t('Это объявление сохранено только на вашем телефоне и пока не видно другим пользователям.', 'Локальное объявление.')}</p>}
       <button className="secondary full" onClick={() => toggleFavorite(selected.id)}>{favorites.includes(selected.id) ? '♥ ' + t('Убрать из избранного', 'Убрать') : '♡ ' + t('В избранное', 'В избранное')}</button>
       {selected.phone ? <a className="primary full call-link" href={'tel:' + selected.phone}>{t('Позвонить работодателю', 'Позвонить')}</a> : <p className="muted">{t('Контактный номер для этой демонстрационной вакансии не указан.', 'Контакт не указан.')}</p>}
     </div></div>}
@@ -174,7 +227,7 @@ function JobCard({ job, onClick, favorite, onFavorite }) {
     <div className="job-top"><span className="job-tag">{job.tag}</span><span className="job-city">{job.city}</span></div>
     <b>{job.title}</b><span className="company">{job.company || 'Частный заказчик'}</span>
     <div className="job-bottom"><strong>{job.pay || 'Оплата обсуждается'}</strong><span>{job.type}</span></div>
-    {job.localOnly && <small className="local-label">Сохранено на этом устройстве</small>}
+    {job.demo && <small className="local-label">Пример · не проверено</small>}{job.localOnly && <small className="local-label">Сохранено на этом устройстве</small>}
   </button><button className={favorite ? 'favorite-btn saved' : 'favorite-btn'} aria-label={favorite ? 'Убрать из избранного' : 'В избранное'} onClick={onFavorite}>{favorite ? '♥' : '♡'}</button></div>;
 }
 function NavButton({ active, icon, label, onClick }) {
