@@ -94,7 +94,7 @@ function App() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Все');
   const [city, setCity] = useState('Все города');
-  const [jobs, setJobs] = useState(() => readStore(STORAGE.jobs, seedJobs));
+  const [jobs, setJobs] = useState(() => { const saved = readStore(STORAGE.jobs, []); const savedIds = new Set(saved.map(job => job.id)); return [...seedJobs.filter(job => !savedIds.has(job.id)), ...saved]; });
   const [favorites, setFavorites] = useState(() => readStore(STORAGE.favorites, []));
   const [selected, setSelected] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
