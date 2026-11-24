@@ -3,8 +3,11 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
 const STORAGE = { jobs: 'biswork.jobs.v2', favorites: 'biswork.favorites.v2', language: 'biswork.language.v2' };
+const districts = ['Ачхой-Мартановский район','Веденский район','Грозненский район','Гудермесский район','Итум-Калинский район','Курчалоевский район','Надтеречный район','Наурский район','Ножай-Юртовский район','Серноводский район','Урус-Мартановский район','Шалинский район','Шаройский район','Шатойский район','Шелковской район'];
+const urbanPlaces = ['Аргун','Грозный','Гудермес','Ачхой-Мартан','Курчалой','Наурская','Ойсхара','Серноводское','Урус-Мартан','Шали','Шелковская'];
+const suggestedPlaces = [...urbanPlaces,'Верхний Наур','Знаменское','Толстой-Юрт','Алхан-Кала','Самашки','Ведено','Итум-Кали','Шатой','Ножай-Юрт','Бачи-Юрт','Автуры','Гойты','Гехи','Ассиновская','Бамут','Бено-Юрт','Гвардейское','Надтеречное'];
 const cityCoords = {
-  'Грозный': [43.3178, 45.6987], 'Аргун': [43.291, 46.105], 'Гудермес': [43.35, 46.1],
+  'Грозный': [43.3178, 45.6987], 'Аргун': [43.291, 46.105], 'Гудермес': [43.35, 46.1], 'Ойсхара': [43.13, 46.24], 'Шелковская': [43.51, 46.34],
   'Урус-Мартан': [43.128, 45.54], 'Шали': [43.148, 45.9], 'Курчалой': [43.2, 46.1],
   'Ачхой-Мартан': [43.19, 45.28], 'Наурская': [43.65, 45.31], 'Знаменское': [43.68, 45.14],
   'Шелковская': [43.51, 46.34], 'Итум-Кали': [42.76, 45.69], 'Шатой': [42.87, 45.69],
@@ -99,7 +102,7 @@ function App() {
   const [selected, setSelected] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [notice, setNotice] = useState('');
-  const [form, setForm] = useState({ title: '', company: '', city: 'Грозный', tag: 'Строительство', type: 'Полная занятость', pay: '', phone: '', description: '' });
+  const [form, setForm] = useState({ title: '', company: '', city: 'Грозный', district: 'Грозненский район', tag: 'Строительство', type: 'Полная занятость', pay: '', phone: '', description: '' });
 
   useEffect(() => { localStorage.setItem(STORAGE.jobs, JSON.stringify(jobs)); }, [jobs]);
   useEffect(() => { localStorage.setItem(STORAGE.favorites, JSON.stringify(favorites)); }, [favorites]);
@@ -157,7 +160,7 @@ function App() {
       {(tab === 'jobs' || tab === 'favorites') && <section className="section page-section">
         <span className="eyebrow">BISWORK / {tab.toUpperCase()}</span><h2>{title}</h2>
         <input className="search" placeholder={t('Должность, компания или город', 'Болх, фирма я города')} value={query} onChange={e => setQuery(e.target.value)} />
-        <div className="filter-row"><select className="filter-select" value={city} onChange={e => setCity(e.target.value)}><option>Все города</option>{Object.keys(cityCoords).map(c => <option key={c}>{c}</option>)}</select></div>
+        <div className="filter-row"><input className="search" list="biswork-places" placeholder="Все города и сёла — введите населённый пункт" value={city === 'Все города' ? '' : city} onChange={e => setCity(e.target.value || 'Все города')} /><datalist id="biswork-places">{suggestedPlaces.map(p => <option key={p} value={p} />)}</datalist><small className="muted">15 районов · 11 городских населённых пунктов. Любое село или посёлок можно ввести вручную.</small></div>
         <div className="chips">{categories.map(c => <button key={c} className={category === c ? 'chip active' : 'chip'} onClick={() => setCategory(c)}>{c}</button>)}</div>
         <div className="sample-note">В каталоге есть демонстрационные примеры. Реальные вакансии появятся после публикации работодателями.</div><div className="job-list">{filtered.map(j => <JobCard key={j.id} job={j} onClick={() => openJob(j)} favorite={favorites.includes(j.id)} onFavorite={() => toggleFavorite(j.id)} />)}
           {filtered.length === 0 && <div className="empty-state"><b>{t('Ничего не найдено', 'Цхьа а хаам бац')}</b><p>{t('Измените запрос или выберите другой город.', 'Хьажа хьажа.')}</p></div>}
@@ -210,7 +213,7 @@ function App() {
       <button type="button" className="close" onClick={() => setShowCreate(false)}>×</button><span className="eyebrow">NEW LISTING</span><h2>{t('Новое объявление', 'Керла хаам')}</h2>
       <label>{t('Название вакансии или услуги', 'Хааман цӀе')}<input required maxLength="70" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder={t('Например, нужен электрик', 'Например, нужен электрик')} /></label>
       <label>{t('Работодатель / организация', 'Организация')}<input maxLength="60" value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} placeholder={t('Имя или название компании', 'Имя или название компании')} /></label>
-      <div className="form-grid"><label>{t('Город', 'Город')}<select value={form.city} onChange={e => setForm({ ...form, city: e.target.value })}>{Object.keys(cityCoords).map(c => <option key={c}>{c}</option>)}</select></label>
+      <div className="form-grid"><label>Район<select value={form.district} onChange={e => setForm({ ...form, district: e.target.value })}>{districts.map(d => <option key={d}>{d}</option>)}</select></label><label>{t('Город / село / посёлок', 'Город / село')}<input list="biswork-form-places" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} required placeholder="Введите населённый пункт" /><datalist id="biswork-form-places">{suggestedPlaces.map(p => <option key={p} value={p} />)}</datalist></label>
       <label>{t('Категория', 'Категория')}<select value={form.tag} onChange={e => setForm({ ...form, tag: e.target.value })}>{categories.filter(c => c !== 'Все').map(c => <option key={c}>{c}</option>)}</select></label></div>
       <label>{t('Оплата', 'Оплата')}<input maxLength="50" value={form.pay} onChange={e => setForm({ ...form, pay: e.target.value })} placeholder="Например, 3 000 ₽ за смену" /></label>
       <label>{t('Тип занятости', 'Тип занятости')}<select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}><option>Полная занятость</option><option>Частичная занятость</option><option>Подработка</option><option>Сменный график</option><option>Разовый заказ</option></select></label>
