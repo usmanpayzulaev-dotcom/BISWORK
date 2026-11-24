@@ -97,6 +97,7 @@ function App() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Все');
   const [city, setCity] = useState('Все города');
+  const [districtFilter, setDistrictFilter] = useState('Все районы');
   const [jobs, setJobs] = useState(() => { const saved = readStore(STORAGE.jobs, []); const savedIds = new Set(saved.map(job => job.id)); return [...seedJobs.filter(job => !savedIds.has(job.id)), ...saved]; });
   const [favorites, setFavorites] = useState(() => readStore(STORAGE.favorites, []));
   const [selected, setSelected] = useState(null);
@@ -112,7 +113,8 @@ function App() {
   const categories = ['Все', 'Строительство', 'Транспорт', 'Ремонт', 'Продажи', 'Общепит', 'Производство', 'Услуги', 'Безопасность', 'Офис', 'Образование', 'Медицина', 'Сельское хозяйство', 'Склад', 'IT и дизайн', 'Другое'];
   const filtered = useMemo(() => jobs.filter(j =>
     (category === 'Все' || j.tag === category) &&
-    (city === 'Все города' || j.city === city) &&
+    (city === 'Все города' || j.city.toLowerCase().includes(city.toLowerCase())) &&
+    (districtFilter === 'Все районы' || j.district === districtFilter) &&
     (tab !== 'favorites' || favorites.includes(j.id)) &&
     (j.title + ' ' + j.company + ' ' + j.city + ' ' + j.tag + ' ' + (j.description || '')).toLowerCase().includes(query.toLowerCase().trim())
   ), [jobs, query, category, city, tab, favorites]);
@@ -160,7 +162,7 @@ function App() {
       {(tab === 'jobs' || tab === 'favorites') && <section className="section page-section">
         <span className="eyebrow">BISWORK / {tab.toUpperCase()}</span><h2>{title}</h2>
         <input className="search" placeholder={t('Должность, компания или город', 'Болх, фирма я города')} value={query} onChange={e => setQuery(e.target.value)} />
-        <div className="filter-row"><input className="search" list="biswork-places" placeholder="Все города и сёла — введите населённый пункт" value={city === 'Все города' ? '' : city} onChange={e => setCity(e.target.value || 'Все города')} /><datalist id="biswork-places">{suggestedPlaces.map(p => <option key={p} value={p} />)}</datalist><small className="muted">15 районов · 11 городских населённых пунктов. Любое село или посёлок можно ввести вручную.</small></div>
+        <div className="filter-row"><select className="filter-select" value={districtFilter} onChange={e => setDistrictFilter(e.target.value)}><option>Все районы</option>{districts.map(d => <option key={d}>{d}</option>)}</select><input className="search" list="biswork-places" placeholder="Город, село или посёлок" value={city === 'Все города' ? '' : city} onChange={e => setCity(e.target.value || 'Все города')} /><datalist id="biswork-places">{suggestedPlaces.map(p => <option key={p} value={p} />)}</datalist><small className="muted">Выберите район и населённый пункт. Если нужного села нет в подсказках, введите название вручную.</small></div>
         <div className="chips">{categories.map(c => <button key={c} className={category === c ? 'chip active' : 'chip'} onClick={() => setCategory(c)}>{c}</button>)}</div>
         <div className="sample-note">В каталоге есть демонстрационные примеры. Реальные вакансии появятся после публикации работодателями.</div><div className="job-list">{filtered.map(j => <JobCard key={j.id} job={j} onClick={() => openJob(j)} favorite={favorites.includes(j.id)} onFavorite={() => toggleFavorite(j.id)} />)}
           {filtered.length === 0 && <div className="empty-state"><b>{t('Ничего не найдено', 'Цхьа а хаам бац')}</b><p>{t('Измените запрос или выберите другой город.', 'Хьажа хьажа.')}</p></div>}
