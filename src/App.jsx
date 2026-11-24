@@ -1,121 +1,183 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
-const pin = new L.DivIcon({
-  className: 'custom-pin',
-  html: '<div class="pin-dot"></div>',
-  iconSize: [22, 22],
-  iconAnchor: [11, 11]
-});
-
-const jobs = [
-  { id: 1, title: 'Мастер-универсал', company: 'СтройГрупп', city: 'Грозный', pay: 'от 3 500 ₽ / день', type: 'Полная занятость', tag: 'Строительство', lat: 43.3178, lng: 45.6987 },
-  { id: 2, title: 'Водитель категории B', company: 'ЧеченАвто', city: 'Грозный', pay: 'от 55 000 ₽ / месяц', type: 'Полная занятость', tag: 'Транспорт', lat: 43.325, lng: 45.69 },
-  { id: 3, title: 'Электрик', company: 'Частный заказчик', city: 'Аргун', pay: 'от 4 000 ₽ / заказ', type: 'Подработка', tag: 'Ремонт', lat: 43.291, lng: 46.105 },
-  { id: 4, title: 'Продавец-консультант', company: 'Магазин техники', city: 'Гудермес', pay: 'от 40 000 ₽ / месяц', type: 'Сменный график', tag: 'Продажи', lat: 43.35, lng: 46.1 }
+const STORAGE = { jobs: 'biswork.jobs.v2', favorites: 'biswork.favorites.v2', language: 'biswork.language.v2' };
+const cityCoords = {
+  'Грозный': [43.3178, 45.6987], 'Аргун': [43.291, 46.105], 'Гудермес': [43.35, 46.1],
+  'Урус-Мартан': [43.128, 45.54], 'Шали': [43.148, 45.9], 'Курчалой': [43.2, 46.1],
+  'Ачхой-Мартан': [43.19, 45.28], 'Наурская': [43.65, 45.31], 'Знаменское': [43.68, 45.14],
+  'Шелковская': [43.51, 46.34], 'Итум-Кали': [42.76, 45.69], 'Шатой': [42.87, 45.69],
+  'Ведено': [42.97, 46.1], 'Ножай-Юрт': [43.09, 46.38], 'Серноводское': [43.31, 45.16]
+};
+const seedJobs = [
+  { id: 'demo-1', title: 'Мастер-универсал', company: 'СтройГрупп', city: 'Грозный', pay: 'от 3 500 ₽ / день', type: 'Полная занятость', tag: 'Строительство', phone: '', description: 'Требуется опытный мастер для строительных и отделочных работ.', lat: 43.3178, lng: 45.6987, demo: true },
+  { id: 'demo-2', title: 'Водитель категории B', company: 'ЧеченАвто', city: 'Грозный', pay: 'от 55 000 ₽ / месяц', type: 'Полная занятость', tag: 'Транспорт', phone: '', description: 'Работа в городе. Подробности уточняйте у работодателя.', lat: 43.325, lng: 45.69, demo: true },
+  { id: 'demo-3', title: 'Электрик', company: 'Частный заказчик', city: 'Аргун', pay: 'от 4 000 ₽ / заказ', type: 'Подработка', tag: 'Ремонт', phone: '', description: 'Нужен специалист по электромонтажным работам.', lat: 43.291, lng: 46.105, demo: true },
+  { id: 'demo-4', title: 'Продавец-консультант', company: 'Магазин техники', city: 'Гудермес', pay: 'от 40 000 ₽ / месяц', type: 'Сменный график', tag: 'Продажи', phone: '', description: 'Консультация покупателей и помощь с выбором техники.', lat: 43.35, lng: 46.1, demo: true }
 ];
+const pin = new L.DivIcon({ className: 'custom-pin', html: '<div class="pin-dot"></div>', iconSize: [22, 22], iconAnchor: [11, 11] });
+const readStore = (key, fallback) => { try { const value = localStorage.getItem(key); return value ? JSON.parse(value) : fallback; } catch { return fallback; } };
 
-function MapView({ selected }) {
-  const center = selected ? [selected.lat, selected.lng] : [43.3, 45.9];
-  return <MapContainer center={center} zoom={9} scrollWheelZoom={true} className="map">
+function MapFocus({ selected }) {
+  const map = useMap();
+  useEffect(() => { if (selected) map.flyTo([selected.lat, selected.lng], 13, { duration: 0.6 }); }, [selected, map]);
+  return null;
+}
+
+function MapView({ jobs, onSelect, selected }) {
+  return <MapContainer center={[43.25, 45.75]} zoom={8} minZoom={7} maxZoom={17} scrollWheelZoom className="map">
     <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-    {jobs.map(j => <Marker key={j.id} position={[j.lat, j.lng]} icon={pin}><Popup><b>{j.title}</b><br />{j.city}<br />{j.pay}</Popup></Marker>)}
+    <MapFocus selected={selected} />
+    {jobs.map(job => <Marker key={job.id} position={[job.lat, job.lng]} icon={pin} eventHandlers={{ click: () => onSelect(job) }}>
+      <Popup><b>{job.title}</b><br />{job.city}<br />{job.pay}</Popup>
+    </Marker>)}
   </MapContainer>;
 }
 
 function App() {
   const [tab, setTab] = useState('home');
-  const [lang, setLang] = useState('ru');
+  const [lang, setLang] = useState(() => readStore(STORAGE.language, 'ru'));
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Все');
+  const [city, setCity] = useState('Все города');
+  const [jobs, setJobs] = useState(() => readStore(STORAGE.jobs, seedJobs));
+  const [favorites, setFavorites] = useState(() => readStore(STORAGE.favorites, []));
   const [selected, setSelected] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [notice, setNotice] = useState('');
-  const [form, setForm] = useState({ title: '', city: 'Грозный', pay: '', phone: '' });
+  const [form, setForm] = useState({ title: '', company: '', city: 'Грозный', tag: 'Строительство', type: 'Полная занятость', pay: '', phone: '', description: '' });
+
+  useEffect(() => { localStorage.setItem(STORAGE.jobs, JSON.stringify(jobs)); }, [jobs]);
+  useEffect(() => { localStorage.setItem(STORAGE.favorites, JSON.stringify(favorites)); }, [favorites]);
+  useEffect(() => { localStorage.setItem(STORAGE.language, JSON.stringify(lang)); }, [lang]);
 
   const t = (ru, ce) => lang === 'ru' ? ru : ce;
+  const categories = ['Все', 'Строительство', 'Транспорт', 'Ремонт', 'Продажи', 'Услуги', 'Другое'];
   const filtered = useMemo(() => jobs.filter(j =>
     (category === 'Все' || j.tag === category) &&
-    `${j.title} ${j.company} ${j.city} ${j.tag}`.toLowerCase().includes(query.toLowerCase())
-  ), [query, category]);
+    (city === 'Все города' || j.city === city) &&
+    (tab !== 'favorites' || favorites.includes(j.id)) &&
+    (j.title + ' ' + j.company + ' ' + j.city + ' ' + j.tag + ' ' + (j.description || '')).toLowerCase().includes(query.toLowerCase().trim())
+  ), [jobs, query, category, city, tab, favorites]);
 
+  const toggleFavorite = (id) => setFavorites(current => current.includes(id) ? current.filter(x => x !== id) : [...current, id]);
+  const openJob = (job) => setSelected(job);
   const submit = (e) => {
     e.preventDefault();
-    setNotice('Заявка подготовлена. Для публикации потребуется подключить сервер и подтверждение номера телефона.');
+    const coords = cityCoords[form.city] || cityCoords['Грозный'];
+    const newJob = { ...form, id: 'local-' + Date.now(), lat: coords[0], lng: coords[1], createdAt: new Date().toISOString(), localOnly: true };
+    setJobs(current => [newJob, ...current]);
     setShowCreate(false);
+    setForm({ title: '', company: '', city: 'Грозный', tag: 'Строительство', type: 'Полная занятость', pay: '', phone: '', description: '' });
+    setNotice('Объявление сохранено на этом телефоне. Для публикации всем пользователям нужен сервер BISWORK.');
+    setTab('jobs');
+    setQuery('');
+    setCategory('Все');
   };
+
+  const switchTab = (next) => { setTab(next); setSelected(null); setQuery(''); };
+  const title = tab === 'home' ? t('Главная', 'Коьрта') : tab === 'jobs' ? t('Поиск работы', 'Болх лаха') : tab === 'map' ? t('Карта вакансий', 'Вакансийн карта') : tab === 'favorites' ? t('Избранное', 'Деза') : t('Профиль', 'Профиль');
 
   return <div className="app-shell">
     <header className="topbar">
-      <div className="brand"><div className="brand-mark">B</div><div><strong>BISWORK</strong><small>{t('Работа рядом','Бера рядом')}</small></div></div>
+      <div className="brand"><div className="brand-mark">B</div><div><strong>BISWORK</strong><small>{t('Работа рядом', 'Бера герга')}</small></div></div>
       <button className="lang" onClick={() => setLang(lang === 'ru' ? 'ce' : 'ru')}>{lang === 'ru' ? 'РУС' : 'НОХ'}</button>
     </header>
 
     <main>
-      {tab === 'home' && <section className="hero">
-        <div className="eyebrow">{t('ЧЕЧЕНСКАЯ РЕСПУБЛИКА','НОХЧИЙЧОЬ')}</div>
-        <h1>{t('Работа и специалисты —','Болх-белхаш а, говзанчаш а —')}<span>{t('рядом с тобой','хьуна герга')}</span></h1>
-        <p>{t('Находи работу, нанимай специалистов и договаривайся напрямую.','Болх лаха, говзанча валахьа, цхьаьна дехар до.')}</p>
-        <div className="hero-actions"><button className="primary" onClick={() => setTab('jobs')}>{t('Найти работу','Болх лаха')}</button><button className="secondary" onClick={() => setShowCreate(true)}>{t('Разместить объявление','Хаам дӀаязде')}</button></div>
-        <div className="stats"><div><b>ЧР</b><small>{t('Регион запуска','Регион')}</small></div><div><b>24/7</b><small>{t('Доступ к объявлениям','Хаамашка ладогӀа')}</small></div><div><b>0 ₽</b><small>{t('На старте бесплатно','Юкъарах аьтто')}</small></div></div>
-      </section>}
+      {tab === 'home' && <>
+        <section className="hero">
+          <div className="eyebrow">{t('ЧЕЧЕНСКАЯ РЕСПУБЛИКА', 'НОХЧИЙЧОЬ')}</div>
+          <h1>{t('Работа и специалисты —', 'Болх-белхаш а, говзанчаш а —')}<span>{t('рядом с тобой', 'хьуна герга')}</span></h1>
+          <p>{t('Находи работу, нанимай специалистов и договаривайся напрямую.', 'Болх лаха, говзанча валахьа.')}</p>
+          <div className="hero-actions"><button className="primary" onClick={() => switchTab('jobs')}>{t('Найти работу', 'Болх лаха')}</button><button className="secondary" onClick={() => setShowCreate(true)}>{t('Разместить объявление', 'Хаам дӀаязде')}</button></div>
+          <div className="stats"><div><b>ЧР</b><small>{t('Регион запуска', 'Регион')}</small></div><div><b>{jobs.length}</b><small>{t('Объявлений в приложении', 'Хаамаш')}</small></div><div><b>0 ₽</b><small>{t('На старте бесплатно', 'Бесплатно')}</small></div></div>
+        </section>
+        <section className="section">
+          <div className="section-head"><div><span className="eyebrow">BISWORK</span><h2>{t('Свежие вакансии', 'Керла ваканси')}</h2></div><button className="text-btn" onClick={() => switchTab('jobs')}>{t('Все вакансии →', 'Массо ваканси →')}</button></div>
+          <div className="job-list">{jobs.slice(0, 3).map(j => <JobCard key={j.id} job={j} onClick={() => openJob(j)} favorite={favorites.includes(j.id)} onFavorite={() => toggleFavorite(j.id)} />)}</div>
+          <div className="quick-actions"><button className="quick-card" onClick={() => switchTab('map')}><span>⌖</span><b>{t('Открыть карту', 'Карта')}</b><small>{t('Вакансии по районам ЧР', 'Ваканси')}</small></button><button className="quick-card" onClick={() => switchTab('favorites')}><span>♡</span><b>{t('Избранное', 'Деза')}</b><small>{t('Сохранённые вакансии', 'ДӀасахь')}</small></button></div>
+        </section>
+      </>}
 
-      {tab === 'home' && <section className="section">
-        <div className="section-head"><div><span className="eyebrow">BISWORK</span><h2>{t('Популярные вакансии','Ларйина ваканси')}</h2></div><button className="text-btn" onClick={() => setTab('jobs')}>{t('Все вакансии →','Массо ваканси →')}</button></div>
-        <div className="job-list">{jobs.slice(0,3).map(j => <JobCard key={j.id} job={j} onClick={() => {setSelected(j);setTab('map')}} />)}</div>
-      </section>}
-
-      {tab === 'jobs' && <section className="section page-section">
-        <span className="eyebrow">BISWORK / JOBS</span><h2>{t('Поиск работы','Болх лаха')}</h2>
-        <input className="search" placeholder={t('Должность, компания или город','Хьажа долу болх...')} value={query} onChange={e => setQuery(e.target.value)} />
-        <div className="chips">{['Все','Строительство','Транспорт','Ремонт','Продажи'].map(c => <button key={c} className={category===c?'chip active':'chip'} onClick={() => setCategory(c)}>{c}</button>)}</div>
-        <div className="job-list">{filtered.map(j => <JobCard key={j.id} job={j} onClick={() => {setSelected(j);setTab('map')}} />)}{filtered.length===0 && <p className="muted">Ничего не найдено. Попробуйте изменить запрос.</p>}</div>
+      {(tab === 'jobs' || tab === 'favorites') && <section className="section page-section">
+        <span className="eyebrow">BISWORK / {tab.toUpperCase()}</span><h2>{title}</h2>
+        <input className="search" placeholder={t('Должность, компания или город', 'Болх, фирма я города')} value={query} onChange={e => setQuery(e.target.value)} />
+        <div className="filter-row"><select className="filter-select" value={city} onChange={e => setCity(e.target.value)}><option>Все города</option>{Object.keys(cityCoords).map(c => <option key={c}>{c}</option>)}</select></div>
+        <div className="chips">{categories.map(c => <button key={c} className={category === c ? 'chip active' : 'chip'} onClick={() => setCategory(c)}>{c}</button>)}</div>
+        <div className="job-list">{filtered.map(j => <JobCard key={j.id} job={j} onClick={() => openJob(j)} favorite={favorites.includes(j.id)} onFavorite={() => toggleFavorite(j.id)} />)}
+          {filtered.length === 0 && <div className="empty-state"><b>{t('Ничего не найдено', 'Цхьа а хаам бац')}</b><p>{t('Измените запрос или выберите другой город.', 'Хьажа хьажа.')}</p></div>}
+        </div>
+        <button className="primary full create-inline" onClick={() => setShowCreate(true)}>＋ {t('Разместить объявление', 'Хаам дӀаязде')}</button>
       </section>}
 
       {tab === 'map' && <section className="section map-section">
-        <span className="eyebrow">MAP / ЧР</span><h2>{t('Карта вакансий','Вакансийн карта')}</h2>
-        <p className="muted">Грозный, Аргун, Гудермес и другие населённые пункты Чеченской Республики.</p>
-        <div className="map-wrap"><MapView selected={selected} /></div>
-        <div className="map-legend"><span className="pin-dot"></span>{t('Вакансии на карте','Ваканси карта чу')}</div>
-        {selected && <div className="selected-job"><b>{selected.title}</b><span>{selected.city} · {selected.pay}</span><button className="text-btn" onClick={() => setSelected(null)}>Сбросить выбор</button></div>}
+        <span className="eyebrow">MAP / CHECHNYA</span><h2>{title}</h2>
+        <p className="muted">{t('Карта Чеченской Республики. Нажмите на метку, чтобы открыть объявление.', 'Карта. Метка тӀе хьажа.')}</p>
+        <div className="map-wrap"><MapView jobs={jobs} selected={selected} onSelect={openJob} /></div>
+        <div className="map-legend"><span className="pin-dot"></span>{t('Объявления на карте', 'Карта чу хаамаш')} <span className="map-count">{jobs.length}</span></div>
+        <button className="primary full create-inline" onClick={() => setShowCreate(true)}>＋ {t('Добавить объявление', 'Хаам дӀаязде')}</button>
       </section>}
 
       {tab === 'profile' && <section className="section page-section">
-        <span className="eyebrow">ACCOUNT</span><h2>{t('Личный кабинет','Личный кабинет')}</h2>
-        <div className="profile-card"><div className="avatar">U</div><div><b>{t('Добро пожаловать в BISWORK','BISWORK чу марша догӀийла')}</b><p className="muted">{t('Войдите или зарегистрируйтесь по номеру телефона.','Телефонан номерца регистраци йе.')}</p></div></div>
-        <div className="settings-row"><span>{t('Подтверждение телефона','Телефон тӀечӀагӀдар')}</span><b className="status">Обязательно</b></div>
-        <div className="settings-row"><span>{t('Проверка документов','Документан тӀечӀагӀдар')}</span><b className="muted">Добровольно</b></div>
-        <div className="settings-row"><span>{t('Язык приложения','Программин мотт')}</span><button className="text-btn" onClick={() => setLang(lang==='ru'?'ce':'ru')}>{lang==='ru'?'Русский':'Нохчийн'}</button></div>
-        <p className="notice">Профили, телефонная авторизация, жалобы, push-уведомления и серверная модерация подключаются на следующем этапе.</p>
+        <span className="eyebrow">ACCOUNT</span><h2>{title}</h2>
+        <div className="profile-card"><div className="avatar">B</div><div><b>{t('Добро пожаловать в BISWORK', 'BISWORK чу марша догӀийла')}</b><p className="muted">{t('Личный кабинет будет активирован после подключения безопасной авторизации.', 'Телефонан номерца регистраци.')}</p></div></div>
+        <div className="settings-row"><span>{t('Подтверждение телефона', 'Телефон тӀечӀагӀдар')}</span><b className="status">{t('Обязательно', 'Деза')}</b></div>
+        <div className="settings-row"><span>{t('Проверка документов', 'Документан тӀечӀагӀдар')}</span><b className="muted">{t('Добровольно', 'Деза ма ду')}</b></div>
+        <div className="settings-row"><span>{t('Язык приложения', 'Программин мотт')}</span><button className="text-btn" onClick={() => setLang(lang === 'ru' ? 'ce' : 'ru')}>{lang === 'ru' ? 'Русский' : 'Нохчийн'}</button></div>
+        <div className="settings-row"><span>{t('Избранные объявления', 'Деза хаамаш')}</span><b>{favorites.length}</b></div>
+        <div className="settings-row"><span>{t('Мои объявления на этом телефоне', 'Хьан хаамаш')}</span><b>{jobs.filter(j => j.localOnly).length}</b></div>
+        <p className="notice">{t('Безопасный вход по SMS, синхронизация объявлений, чат, жалобы и push-уведомления требуют серверной части. Мы не имитируем подтверждение телефона до её подключения.', 'Сервер хила деза.')}</p>
       </section>}
     </main>
 
-    {notice && <div className="toast" onClick={() => setNotice('')}>{notice} <b>×</b></div>}
+    {notice && <div className="toast" role="status" onClick={() => setNotice('')}>{notice} <b>×</b></div>}
     <nav className="bottom-nav">
-      <NavButton active={tab==='home'} icon="⌂" label={t('Главная','Коьрта')} onClick={() => setTab('home')} />
-      <NavButton active={tab==='jobs'} icon="▤" label={t('Работа','Болх')} onClick={() => setTab('jobs')} />
-      <NavButton active={tab==='map'} icon="⌖" label={t('Карта','Карта')} onClick={() => setTab('map')} />
-      <NavButton active={tab==='profile'} icon="◉" label={t('Профиль','Профиль')} onClick={() => setTab('profile')} />
+      <NavButton active={tab === 'home'} icon="⌂" label={t('Главная', 'Коьрта')} onClick={() => switchTab('home')} />
+      <NavButton active={tab === 'jobs'} icon="▤" label={t('Работа', 'Болх')} onClick={() => switchTab('jobs')} />
+      <NavButton active={tab === 'map'} icon="⌖" label={t('Карта', 'Карта')} onClick={() => switchTab('map')} />
+      <NavButton active={tab === 'favorites'} icon="♡" label={t('Избранное', 'Деза')} onClick={() => switchTab('favorites')} />
+      <NavButton active={tab === 'profile'} icon="◉" label={t('Профиль', 'Профиль')} onClick={() => switchTab('profile')} />
     </nav>
 
-    {showCreate && <div className="modal-backdrop" onClick={() => setShowCreate(false)}><form className="modal" onSubmit={submit} onClick={e => e.stopPropagation()}>
-      <button type="button" className="close" onClick={() => setShowCreate(false)}>×</button><span className="eyebrow">NEW LISTING</span><h2>{t('Новое объявление','Керла хаам')}</h2>
-      <label>Название<input required value={form.title} onChange={e => setForm({...form,title:e.target.value})} placeholder="Например, нужен электрик" /></label>
-      <label>Город<select value={form.city} onChange={e => setForm({...form,city:e.target.value})}><option>Грозный</option><option>Аргун</option><option>Гудермес</option><option>Урус-Мартан</option><option>Шали</option></select></label>
-      <label>Оплата<input value={form.pay} onChange={e => setForm({...form,pay:e.target.value})} placeholder="Например, 3 000 ₽ за смену" /></label>
-      <label>Телефон<input required type="tel" value={form.phone} onChange={e => setForm({...form,phone:e.target.value})} placeholder="+7 ___ ___-__-__" /></label>
-      <button className="primary full" type="submit">Продолжить</button>
-      <small className="muted">Демо-форма: объявление пока не отправляется на сервер.</small>
+    {selected && <div className="modal-backdrop" onClick={() => setSelected(null)}><div className="modal detail-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+      <button type="button" className="close" onClick={() => setSelected(null)}>×</button>
+      <span className="eyebrow">{selected.tag} · {selected.city}</span><h2>{selected.title}</h2>
+      <p className="company">{selected.company || t('Частный заказчик', 'Частный заказчик')}</p>
+      <div className="detail-pay">{selected.pay || t('Оплата обсуждается', 'Оплата обсуждается')}</div>
+      <div className="detail-row"><span>{t('Занятость', 'Занятость')}</span><b>{selected.type}</b></div>
+      <p className="detail-description">{selected.description || t('Подробности уточняйте у работодателя.', 'Подробности уточняйте.')}</p>
+      {selected.localOnly && <p className="local-warning">{t('Это объявление сохранено только на вашем телефоне и пока не видно другим пользователям.', 'Локальное объявление.')}</p>}
+      <button className="secondary full" onClick={() => toggleFavorite(selected.id)}>{favorites.includes(selected.id) ? '♥ ' + t('Убрать из избранного', 'Убрать') : '♡ ' + t('В избранное', 'В избранное')}</button>
+      {selected.phone ? <a className="primary full call-link" href={'tel:' + selected.phone}>{t('Позвонить работодателю', 'Позвонить')}</a> : <p className="muted">{t('Контактный номер для этой демонстрационной вакансии не указан.', 'Контакт не указан.')}</p>}
+    </div></div>}
+
+    {showCreate && <div className="modal-backdrop" onClick={() => setShowCreate(false)}><form className="modal create-modal" onSubmit={submit} onClick={e => e.stopPropagation()}>
+      <button type="button" className="close" onClick={() => setShowCreate(false)}>×</button><span className="eyebrow">NEW LISTING</span><h2>{t('Новое объявление', 'Керла хаам')}</h2>
+      <label>{t('Название вакансии или услуги', 'Хааман цӀе')}<input required maxLength="70" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder={t('Например, нужен электрик', 'Например, нужен электрик')} /></label>
+      <label>{t('Работодатель / организация', 'Организация')}<input maxLength="60" value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} placeholder={t('Имя или название компании', 'Имя или название компании')} /></label>
+      <div className="form-grid"><label>{t('Город', 'Город')}<select value={form.city} onChange={e => setForm({ ...form, city: e.target.value })}>{Object.keys(cityCoords).map(c => <option key={c}>{c}</option>)}</select></label>
+      <label>{t('Категория', 'Категория')}<select value={form.tag} onChange={e => setForm({ ...form, tag: e.target.value })}>{categories.filter(c => c !== 'Все').map(c => <option key={c}>{c}</option>)}</select></label></div>
+      <label>{t('Оплата', 'Оплата')}<input maxLength="50" value={form.pay} onChange={e => setForm({ ...form, pay: e.target.value })} placeholder="Например, 3 000 ₽ за смену" /></label>
+      <label>{t('Тип занятости', 'Тип занятости')}<select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}><option>Полная занятость</option><option>Частичная занятость</option><option>Подработка</option><option>Сменный график</option><option>Разовый заказ</option></select></label>
+      <label>{t('Телефон для связи', 'Телефон')}<input required type="tel" maxLength="20" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+7 ___ ___-__-__" /></label>
+      <label>{t('Описание', 'Описание')}<textarea rows="3" maxLength="500" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder={t('Расскажите подробнее об условиях и требованиях', 'Описание')} /></label>
+      <button className="primary full" type="submit">{t('Сохранить объявление', 'Сохранить')}</button>
+      <small className="muted">{t('Пока объявление сохраняется только на этом устройстве. Для общей публикации и проверки номера потребуется сервер BISWORK.', 'Локальное сохранение.')}</small>
     </form></div>}
   </div>;
 }
 
-function JobCard({job,onClick}) {
-  return <button className="job-card" onClick={onClick}><div className="job-top"><span className="job-tag">{job.tag}</span><span className="job-city">{job.city}</span></div><b>{job.title}</b><span className="company">{job.company}</span><div className="job-bottom"><strong>{job.pay}</strong><span>{job.type}</span></div></button>;
+function JobCard({ job, onClick, favorite, onFavorite }) {
+  return <div className="job-card-wrap"><button className="job-card" onClick={onClick}>
+    <div className="job-top"><span className="job-tag">{job.tag}</span><span className="job-city">{job.city}</span></div>
+    <b>{job.title}</b><span className="company">{job.company || 'Частный заказчик'}</span>
+    <div className="job-bottom"><strong>{job.pay || 'Оплата обсуждается'}</strong><span>{job.type}</span></div>
+    {job.localOnly && <small className="local-label">Сохранено на этом устройстве</small>}
+  </button><button className={favorite ? 'favorite-btn saved' : 'favorite-btn'} aria-label={favorite ? 'Убрать из избранного' : 'В избранное'} onClick={onFavorite}>{favorite ? '♥' : '♡'}</button></div>;
 }
-function NavButton({active,icon,label,onClick}) {
-  return <button className={active?'nav-item active':'nav-item'} onClick={onClick}><span className="nav-icon">{icon}</span><small>{label}</small></button>;
+function NavButton({ active, icon, label, onClick }) {
+  return <button className={active ? 'nav-item active' : 'nav-item'} onClick={onClick}><span className="nav-icon">{icon}</span><small>{label}</small></button>;
 }
-
 export default App;
